@@ -66,7 +66,7 @@ from keras.layers import Dropout
 
 
 #initializing the RNN
-    regressor = Sequential( )
+regressor = Sequential( )
 # we named this as regressor because we are predicting a continuous value
 
 # units: number of units/LSTM cells (we want high number of dimentionality)
@@ -101,7 +101,7 @@ regressor.add(Dense(units = 1))
 
 
 # Compiling the RNN
-regressor.compile(optimizer ='adam', 'mean_squared_error')
+regressor.compile(optimizer ='adam', loss='mean_squared_error')
 
 # Fitting the RNN to Training Set
 # we insert 4 args: the inputs of the training set, 
@@ -109,5 +109,44 @@ regressor.compile(optimizer ='adam', 'mean_squared_error')
 # which will be compared to the ground truth that is in Y_train
 # epochs: how many times we want the data to be forward probagated inside the network.
 
+regressor.fit(X_train, Y_train, epochs = 100, batch_size = 32)
 
-regressor.fit(X_train, Y_train,)
+#if we get a loss too small at the end we might get overfitting.
+
+dataset_test = pd.read_csv('Google_Stock_Price_Test.csv')
+real_stock_price = dataset_test.iloc[:, 1:2].values
+
+# getting the predicted stock price of january 2017
+# reminder: we trained or model to be able to predict the stock price
+# at time t+1 based on the sixty previous stock prices.
+# therefore, in order to predict each stock price of each finanical day
+# of jaunary 2017 we will need the 60 previous stock prices before the the
+# actual day.
+
+# in order to get at each day of Jan 2017 the sixty previous stock prices of 
+# each day, we will need both the training and test sets, becasue some of the 60
+# days will be from the training set (from DEC 2016), and some from the test set
+# which will come from JAN 2017.
+
+# now we want to concatenate the training set and test set, and that to be able to get
+# the 60  previous inputs for each day of JAN 2017.
+
+# if we concatenate : training_set = dataset_train.iloc[:, 1:2].values 
+# with real_stock_price = dataset_test.iloc[:, 1:2].values
+# that will lead us to a problem, because what we have to do is to scale this 
+# concacenating of the train set and the test set.
+# and that means that we will change the test values, but we don't want to do this
+# we want to keep the test values as they are.
+
+# to handle this problem we will concatenate the original data frames: 
+# dataset_train = pd.read_csv('Google_Stock_Price_Train.csv') 
+# with dataset_test = pd.read_csv('Google_Stock_Price_Test.csv')
+
+# and from this concatenating we will get the input of each prediction, that is
+# the 60 previous stock prices at each time t, and this is the data that we will scale!
+
+
+
+
+
+# Visualization of results
