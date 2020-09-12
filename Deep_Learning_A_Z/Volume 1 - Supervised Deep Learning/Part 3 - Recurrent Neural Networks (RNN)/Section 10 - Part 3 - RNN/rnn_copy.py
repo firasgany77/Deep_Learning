@@ -160,7 +160,7 @@ real_stock_price = dataset_test.iloc[:, 1:2].values
  
  inputs = dataset_total[len(dataset_total) - len(dataset_test) - 60:]
  # : at the end means continue to the end of the vector dataset_total
- inputs = inputs.values.reshape(-1,1)
+ inputs = inputs.values.reshape(-1,1) # we deleted the index column
  
  # the scaling we are applying to our input is the same as the one we did
  # on the training set, so we directly use fit.transform:
@@ -175,15 +175,17 @@ X_test = [] # the name is consistent with the training input X_train
 for i in range(60, 80): #range for 20 finanicial days
     X_test.append(inputs[i-60:i, 0]) #moving window of 60 pins
 X_test = np.array(X_test) 
+
+# X_test is a 20x60 matrix, each row represents the previous stock prices
+# of a certain day, according to this data we want to make out predictions (check)
+
 # reshaping:
 X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
 predicted_stock_price = regressor.predict(X_test)
 #inverse the scaling
 predicted_stock_price = sc.inverse_transform(predicted_stock_price)
   
-
-# Visualization of results
-# real google 
+# Visualization of results 
 plt.plot(real_stock_price, color = 'green', label='Real Google Stock Price')
 plt.plot(predicted_stock_price, color = 'blue', label='Predicted Google Stock Price')
 plt.title('Google Stock Price Prediction')
