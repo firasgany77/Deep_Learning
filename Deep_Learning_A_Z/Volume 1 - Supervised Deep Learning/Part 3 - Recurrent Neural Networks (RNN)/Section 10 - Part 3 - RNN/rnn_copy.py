@@ -15,8 +15,6 @@ import pandas as pd
 dataset_train = pd.read_csv('Google_Stock_Price_Train.csv')
 training_set = dataset_train.iloc[:, 1:2].values
 
-
-
 # Feature Scaling
 
 # standardization = (x-mean(x))\(std deviation)
@@ -55,7 +53,7 @@ X_train, Y_train = np.array(X_train), np.array(Y_train)
 # the last arguments is the number of indicators (num of predictors) which is 1 (the 
 # Open google stock price)
 
-
+# reshaping:
 X_train = np.reshape(X_train, (X_train.shape[0],X_train.shape[1],1))
 # this is a structure with three dimentions: stock prices, timestamps, number of indicators.
 
@@ -143,10 +141,50 @@ real_stock_price = dataset_test.iloc[:, 1:2].values
 # with dataset_test = pd.read_csv('Google_Stock_Price_Test.csv')
 
 # and from this concatenating we will get the input of each prediction, that is
-# the 60 previous stock prices at each time t, and this is the data that we will scale!
+# the 60 previous stock prices at each time t, and this is the data that we will scale 
+# in order to get the prediction. that way we will be only scaling the inputs without 
+# changing the actual test values.
 
+# why do we need to scale the inputs?
+# Answer: because our RNN was trained on the scaled values of the training set.
 
+ dataset_total = pd.concat((dataset_train['Open'], dataset_test['Open']) , axis=0)
+ # the vertical axis is labeled by zero
+ # we're going to need the stock prices from the first finanicial day of JAN 2017 , 
+ # minus 60, up to the last stock price of our whole data set.
+ 
+ # first we get the lower bound of range of inputs we need:
+ # the index: (len(dataset_total) - len(dataset_test)) gives the first finanicial
+ # day of JAN 2017.
+ 
+ 
+ inputs = dataset_total[len(dataset_total) - len(dataset_test) - 60:]
+ # : at the end means continue to the end of the vector dataset_total
+ inputs = inputs.values.reshape(-1,1)
+ 
+ # the scaling we are applying to our input is the same as the one we did
+ # on the training set, so we directly use fit.transform:
+ inputs = sc.transform(inputs)
 
+# we don't use the fit.transform because our sc object is already fitted
+# to the training set.
+X_test = [] # the name is consistent with the training input X_train
+            # we don't need Y_test because we're not doing training, 
+            # but directly we will do predictions.
 
+for i in range(60, 80): #range for 20 finanicial days
+    X_test.append(inputs[i-60:i, 0]) #moving window of 60 pins
+X_test = np.array(X_test) 
+# reshaping:
+X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
+predicted_stock_price = regressor.predict(X_test)
+#inverse the scaling
+predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+  
 
 # Visualization of results
+# real google 
+plt.plot(real_stock_price, color = 'green', label='Real Google Stock Price')
+plt.plot(real_stock_price, color = 'blue', label='Predicted Google Stock Price')
+
+
