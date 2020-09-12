@@ -66,14 +66,48 @@ from keras.layers import Dropout
 
 
 #initializing the RNN
-regressor = Sequential( )
+    regressor = Sequential( )
 # we named this as regressor because we are predicting a continuous value
 
-# adding the first LSTM layer and some Dropout regularization (to avoid overfitting)
 # units: number of units/LSTM cells (we want high number of dimentionality)
 # return_sequence = True (becasue we want to add another LSTM layer after this one)
 # we are making a stacked LSTM network: more than one LSTM network one after another.
 # the input shape is that last two dimentions: timestamps, indicators. 
 
-regressor.add(LSTM(units = 50, return_sequence = True, input_shape = (X_train.shape[1], 1)))
-regressor
+# adding the first LSTM layer and some Dropout regularization (to avoid overfitting)
+regressor.add(LSTM(units = 50, return_sequences = True, input_shape = (X_train.shape[1], 1)))
+regressor.add(Dropout(0.2)) 
+
+# adding the second LSTM layer and some Dropout regularization (to avoid overfitting)
+regressor.add(LSTM(units = 50, return_sequences = True))
+regressor.add(Dropout(0.2)) 
+
+# adding the third LSTM layer and some Dropout regularization (to avoid overfitting)
+regressor.add(LSTM(units = 50, return_sequences = True))
+regressor.add(Dropout(0.2)) 
+
+# adding the fourth LSTM layer and some Dropout regularization (to avoid overfitting)
+regressor.add(LSTM(units = 50, return_sequences = False))
+regressor.add(Dropout(0.2)) 
+
+# adding the output layer
+#units: the # of neurons that should be in the output layer.
+#units = 1 , the stock price at time t+1.
+# the output includes the ground truth, which is the stock price at time t+1.
+# we're training the RNN on the Truth (true stock prices that are happening at
+# time t+1 after the 60 stock prices during the 60 finanicial days, and that's
+# why we also need to include the ground truth, and therefore y train)
+regressor.add(Dense(units = 1)) 
+
+
+# Compiling the RNN
+regressor.compile(optimizer ='adam', 'mean_squared_error')
+
+# Fitting the RNN to Training Set
+# we insert 4 args: the inputs of the training set, 
+# will be forward propagated to the output which will be the prediction,
+# which will be compared to the ground truth that is in Y_train
+# epochs: how many times we want the data to be forward probagated inside the network.
+
+
+regressor.fit(X_train, Y_train,)
